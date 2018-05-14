@@ -17,12 +17,16 @@ Tests for the SilhouetteVisualizer
 ## Imports
 ##########################################################################
 
+import sys
+import pytest
+
+import matplotlib.pyplot as plt
+
 from ..base import VisualTestCase
 
-from sklearn.cluster import KMeans, MiniBatchKMeans
 from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans, MiniBatchKMeans
 
-from yellowbrick.exceptions import YellowbrickValueError
 from yellowbrick.cluster.silhouette import SilhouetteVisualizer
 
 
@@ -31,13 +35,18 @@ from yellowbrick.cluster.silhouette import SilhouetteVisualizer
 ##########################################################################
 
 class SilhouetteVisualizerTests(VisualTestCase):
+    """
+    Silhouette Visualizer
+    """
 
+    @pytest.mark.xfail(
+        sys.platform == 'win32', reason="images not close on windows"
+    )
     def test_integrated_kmeans_silhouette(self):
         """
         Test no exceptions for kmeans silhouette visualizer on blobs dataset
-
-        See #182: cannot use occupancy dataset because of memory usage
         """
+        # NOTE see #182: cannot use occupancy dataset because of memory usage
 
         # Generate a blobs data set
         X, y = make_blobs(
@@ -45,19 +54,25 @@ class SilhouetteVisualizerTests(VisualTestCase):
         )
 
         try:
-            visualizer = SilhouetteVisualizer(KMeans(random_state=0))
+            fig = plt.figure()
+            ax = fig.add_subplot()
+
+            visualizer = SilhouetteVisualizer(KMeans(random_state=0), ax=ax)
             visualizer.fit(X)
             visualizer.poof()
+
             self.assert_images_similar(visualizer)
         except Exception as e:
             self.fail("error during silhouette: {}".format(e))
 
+    @pytest.mark.xfail(
+        sys.platform == 'win32', reason="images not close on windows"
+    )
     def test_integrated_mini_batch_kmeans_silhouette(self):
         """
         Test no exceptions for mini-batch kmeans silhouette visualizer
-
-        See #182: cannot use occupancy dataset because of memory usage
         """
+        # NOTE see #182: cannot use occupancy dataset because of memory usage
 
         # Generate a blobs data set
         X, y = make_blobs(
@@ -65,9 +80,13 @@ class SilhouetteVisualizerTests(VisualTestCase):
         )
 
         try:
-            visualizer = SilhouetteVisualizer(MiniBatchKMeans(random_state=0))
+            fig = plt.figure()
+            ax = fig.add_subplot()
+
+            visualizer = SilhouetteVisualizer(MiniBatchKMeans(random_state=0), ax=ax)
             visualizer.fit(X)
             visualizer.poof()
+
             self.assert_images_similar(visualizer)
         except Exception as e:
             self.fail("error during silhouette: {}".format(e))

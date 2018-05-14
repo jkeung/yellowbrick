@@ -22,6 +22,7 @@ Implements visual ROC/AUC curves for classification evaluation.
 import numpy as np
 
 from ..exceptions import ModelError
+from ..exceptions import YellowbrickValueError
 from ..style.palettes import LINE_COLOR
 from .base import ClassificationScoreVisualizer
 
@@ -60,11 +61,12 @@ class ROCAUC(ClassificationScoreVisualizer):
 
     Parameters
     ----------
-    ax : the axis to plot the figure on.
+    model : estimator
+        Must be a classifier, otherwise raises YellowbrickTypeError
 
-    model : the Scikit-Learn estimator
-        Should be an instance of a classifier, else the __init__ will
-        return an error.
+    ax : matplotlib Axes, default: None
+        The axes to plot the figure on. If None is passed in the current axes
+        will be used (or generated if required).
 
     classes : list
         A list of class names for the legend. If classes is None and a y value
@@ -128,6 +130,11 @@ class ROCAUC(ClassificationScoreVisualizer):
     def __init__(self, model, ax=None, classes=None,
                  micro=True, macro=True, per_class=True, **kwargs):
         super(ROCAUC, self).__init__(model, ax=ax, classes=classes, **kwargs)
+
+        if not micro and not macro and not per_class:
+            raise YellowbrickValueError(
+                "no curves will be drawn; specify micro, macro, or per_clss"
+            )
 
         # Set the visual parameters for ROCAUC
         self.micro = micro
@@ -219,7 +226,7 @@ class ROCAUC(ClassificationScoreVisualizer):
         if self.micro:
             self.ax.plot(
                 self.fpr[MICRO], self.tpr[MICRO], linestyle="--",
-                color= self.colors[len(self.classes_)],
+                color= self.colors[len(self.classes_)-1],
                 label='micro-average ROC curve, AUC = {:0.2f}'.format(
                     self.roc_auc["micro"],
                 )
@@ -229,7 +236,7 @@ class ROCAUC(ClassificationScoreVisualizer):
         if self.macro:
             self.ax.plot(
                 self.fpr[MACRO], self.tpr[MACRO], linestyle="--",
-                color= self.colors[len(self.classes_)+1],
+                color= self.colors[len(self.classes_)-1],
                 label='macro-average ROC curve, AUC = {:0.2f}'.format(
                     self.roc_auc["macro"],
                 )

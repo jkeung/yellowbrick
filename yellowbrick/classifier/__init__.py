@@ -23,10 +23,12 @@ Visualizations related to evaluating Scikit-Learn classification models.
 ## Hoist visualizers into the classifier namespace
 from ..base import ScoreVisualizer
 from .base import ClassificationScoreVisualizer
-from .class_balance import ClassBalance
+from .class_balance import ClassBalance, ClassPredictionError
 from .classification_report import ClassificationReport, classification_report
-from .confusion_matrix import ConfusionMatrix
-from .learning_curve import LearningCurveVisualizer, learning_curve_plot
+from .confusion_matrix import ConfusionMatrix, confusion_matrix
 from .rocauc import ROCAUC, roc_auc
+from .threshold import DiscriminationThreshold, discrimination_threshold
+
+
+# Deprecated and moved to contrib
 from .boundaries import decisionviz, DecisionBoundariesVisualizer, DecisionViz
-from .threshold import ThreshViz, ThresholdVisualizer, thresholdviz

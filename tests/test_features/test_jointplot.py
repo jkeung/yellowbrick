@@ -21,11 +21,13 @@ execute, otherwise most will skip and only the warning will be tested.
 ## Imports
 ##########################################################################
 
+import sys
+import pytest
 import warnings
 import unittest
 import numpy as np
 import matplotlib as mpl
-import numpy.testing as npt
+import matplotlib.pyplot as plt
 
 from tests.dataset import DatasetMixin
 from tests.base import VisualTestCase
@@ -63,7 +65,7 @@ class JointPlotTests(VisualTestCase, DatasetMixin):
             warnings.simplefilter("always")
 
             # Trigger a warning.
-            visualizer = JointPlotVisualizer()
+            JointPlotVisualizer()
 
             # Ensure that a warning occurred
             self.assertEqual(len(w), 1)
@@ -73,24 +75,34 @@ class JointPlotTests(VisualTestCase, DatasetMixin):
                 "or greater. Please upgrade."
             )
 
-
+    @pytest.mark.xfail(
+        sys.platform == 'win32', reason="images not close on windows"
+    )
     @unittest.skipIf(MPL_VERS_MAJ < 2, "requires matplotlib 2.0.0 or greater")
     def test_jointplot_has_no_errors(self):
         """
         Assert no errors occur during jointplot visualizer integration
         """
+        fig = plt.figure()
+        ax = fig.add_subplot()
 
-        visualizer = JointPlotVisualizer()
+        visualizer = JointPlotVisualizer(ax=ax)
         visualizer.fit(self.X, self.y)
         visualizer.poof()
+
         self.assert_images_similar(visualizer)
 
-
+    @pytest.mark.xfail(
+        sys.platform == 'win32', reason="images not close on windows"
+    )
     @unittest.skipIf(MPL_VERS_MAJ < 2, "requires matplotlib 2.0.0 or greater")
     def test_jointplot_integrated_has_no_errors(self):
         """
         Test jointplot on the concrete data set
         """
+
+        fig = plt.figure()
+        ax = fig.add_subplot()
 
         # Load the data from the fixture
         X = self.concrete['cement']
@@ -99,9 +111,11 @@ class JointPlotTests(VisualTestCase, DatasetMixin):
         target = 'strength'
 
         # Test the visualizer
-        visualizer = JointPlotVisualizer(feature=feature, target=target, joint_plot="hex")
-        visualizer.fit(X, y)                # Fit the data to the visualizer
-        g = visualizer.poof()
+        visualizer = JointPlotVisualizer(
+            feature=feature, target=target, joint_plot="hex", ax=ax)
+        visualizer.fit(X, y)
+        visualizer.poof()
+
         self.assert_images_similar(visualizer)
 
 
@@ -109,7 +123,6 @@ class JointPlotTests(VisualTestCase, DatasetMixin):
     def test_jointplot_no_matplotlib2_warning(self):
         """
         Assert no UserWarning occurs if matplotlib major version >= 2
-        (and not exactly 2.0.0).
         """
         with warnings.catch_warnings(record=True) as ws:
             # Filter on UserWarnings

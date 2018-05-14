@@ -17,6 +17,7 @@ Tests to ensure that the visual pipeline works as expected.
 ## Imports
 ##########################################################################
 
+import os
 import unittest
 
 from yellowbrick.base import Visualizer
@@ -91,7 +92,7 @@ class VisualPipelineTests(unittest.TestCase):
 
         # validate a bad intermediate transformer on the Pipeline
         with self.assertRaises(TypeError):
-            pipeline = Pipeline([
+            Pipeline([
                 ('real', MockTransformer()),
                 ('bad', Thing()),
                 ('model', MockEstimator()),
@@ -99,7 +100,7 @@ class VisualPipelineTests(unittest.TestCase):
 
         # validate a bad intermediate transformer on the VisualPipeline
         with self.assertRaises(TypeError):
-            pipeline = VisualPipeline([
+            VisualPipeline([
                 ('real', MockTransformer()),
                 ('bad', Thing()),
                 ('model', MockEstimator()),
@@ -107,21 +108,21 @@ class VisualPipelineTests(unittest.TestCase):
 
         # validate a bad final estimator on the Pipeline
         with self.assertRaises(TypeError):
-            pipeline = Pipeline([
+            Pipeline([
                 ('real', MockTransformer()),
                 ('bad', Thing()),
             ])
 
         # validate a bad final estimator on the VisualPipeline
         with self.assertRaises(TypeError):
-            pipeline = VisualPipeline([
+            VisualPipeline([
                 ('real', MockTransformer()),
                 ('bad', Thing()),
             ])
 
         # validate visual transformers on a Pipeline
         try:
-            pipeline = Pipeline([
+            Pipeline([
                 ('real', MockTransformer()),
                 ('visual', MockVisualTransformer()),
                 ('model', MockEstimator()),
@@ -131,7 +132,7 @@ class VisualPipelineTests(unittest.TestCase):
 
         # validate visual transformers on a VisualPipeline
         try:
-            pipeline = VisualPipeline([
+            VisualPipeline([
                 ('real', MockTransformer()),
                 ('visual', MockVisualTransformer()),
                 ('model', MockEstimator()),
@@ -187,10 +188,13 @@ class VisualPipelineTests(unittest.TestCase):
             ('e', mock.MagicMock(MockVisualEstimator()),)
         ])
 
-        pipeline.poof(outdir="/tmp/figures")
-        pipeline.steps[1][1].poof.assert_called_once_with(outpath="/tmp/figures/b.pdf")
-        pipeline.steps[3][1].poof.assert_called_once_with(outpath="/tmp/figures/d.pdf")
-        pipeline.steps[4][1].poof.assert_called_once_with(outpath="/tmp/figures/e.pdf")
+        # Must use path joining for Windows compatibility
+        tmpdir = os.path.join("tmp", "figures")
+
+        pipeline.poof(outdir=tmpdir)
+        pipeline.steps[1][1].poof.assert_called_once_with(outpath=os.path.join(tmpdir, "b.pdf"))
+        pipeline.steps[3][1].poof.assert_called_once_with(outpath=os.path.join(tmpdir, "d.pdf"))
+        pipeline.steps[4][1].poof.assert_called_once_with(outpath=os.path.join(tmpdir, "e.pdf"))
 
     @unittest.skip("need to find a way for fit to return self in mocks")
     def test_fit_transform_poof_and_draw_calls(self):
